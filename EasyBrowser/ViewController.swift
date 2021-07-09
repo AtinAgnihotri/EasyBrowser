@@ -12,6 +12,9 @@ class ViewController: UIViewController, WKNavigationDelegate {
 
     var webView: WKWebView!
     var progressView: UIProgressView!
+    var progressBarButtonItem: UIBarButtonItem!
+    var spacerBarButtonItem: UIBarButtonItem!
+    var refreshBarButtonItem: UIBarButtonItem!
     
     override func loadView() {
         webView = WKWebView()
@@ -33,12 +36,51 @@ class ViewController: UIViewController, WKNavigationDelegate {
     }
     
     func addNavigationItems() {
-        let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
-        let refresh = UIBarButtonItem(barButtonSystemItem: .refresh, target: webView, action: #selector(webView.reload))
-        toolbarItems = [spacer, refresh]
-        navigationController?.isToolbarHidden = false
-        
+        addOpenButton()
+        addItemsToToolBar()
+    }
+    
+    func addOpenButton() {
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Open", style: .plain, target: self, action: #selector(openTapped))
+    }
+    
+    func addItemsToToolBar() {
+        // Add Progress View
+        addProgressBar()
+        // Adds Spacer and refresh
+        spacerBarButtonItem = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
+        refreshBarButtonItem = UIBarButtonItem(barButtonSystemItem: .refresh, target: webView, action: #selector(webView.reload))
+        // Setup Toolbar
+        toggleToolBarButtonItems(showProgressBar: true)
+        navigationController?.isToolbarHidden = false
+    }
+    
+    func toggleToolBarButtonItems(showProgressBar: Bool) {
+        if showProgressBar {
+            toolbarItems = [progressBarButtonItem, spacerBarButtonItem, refreshBarButtonItem]
+        } else {
+            toolbarItems = [spacerBarButtonItem, refreshBarButtonItem]
+        }
+    }
+    
+    func addProgressBar() {
+        // Create Brogress Bar Button Item
+        progressView = UIProgressView(progressViewStyle: .default)
+        progressView.sizeToFit()
+        progressBarButtonItem = UIBarButtonItem(customView: progressView)
+        // Add KVO to Web View loading
+        webView.addObserver(self, forKeyPath: #keyPath(WKWebView.estimatedProgress), options: .new, context: nil)
+    }
+    
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        if keyPath == "estimatedProgress" {
+            progressView.progress = Float(webView.estimatedProgress)
+            if webView.estimatedProgress == 1 {
+                toggleToolBarButtonItems(showProgressBar: false)
+            } else {
+                toggleToolBarButtonItems(showProgressBar: true)
+            }
+        }
     }
 
     @objc func openTapped() {
