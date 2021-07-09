@@ -15,8 +15,10 @@ class ViewController: UIViewController, WKNavigationDelegate {
     var progressBarButtonItem: UIBarButtonItem!
     var spacerBarButtonItem: UIBarButtonItem!
     var refreshBarButtonItem: UIBarButtonItem!
+    var goBackBarButtonItem: UIBarButtonItem!
+    var goForwardBarButtonItem: UIBarButtonItem!
     
-    let websites = ["atinagnihotri.com", "hackingwithswift.com", "apple.com", "google.com"]
+    let websites = ["atinagnihotri.com", "hackingwithswift.com", "apple.com", "google.com", "wordpress.com"]
     
     override func loadView() {
         webView = WKWebView()
@@ -52,6 +54,8 @@ class ViewController: UIViewController, WKNavigationDelegate {
         // Adds Spacer and refresh
         spacerBarButtonItem = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         refreshBarButtonItem = UIBarButtonItem(barButtonSystemItem: .refresh, target: webView, action: #selector(webView.reload))
+        goBackBarButtonItem = UIBarButtonItem(barButtonSystemItem: .rewind, target: webView, action: #selector(webView.goBack))
+        goForwardBarButtonItem = UIBarButtonItem(barButtonSystemItem: .fastForward, target: webView, action: #selector(webView.goForward))
         // Setup Toolbar
         toggleToolBarButtonItems(showProgressBar: true)
         navigationController?.isToolbarHidden = false
@@ -59,9 +63,9 @@ class ViewController: UIViewController, WKNavigationDelegate {
     
     func toggleToolBarButtonItems(showProgressBar: Bool) {
         if showProgressBar {
-            toolbarItems = [progressBarButtonItem, spacerBarButtonItem, refreshBarButtonItem]
+            toolbarItems = [progressBarButtonItem, spacerBarButtonItem, goBackBarButtonItem, goForwardBarButtonItem, refreshBarButtonItem]
         } else {
-            toolbarItems = [spacerBarButtonItem, refreshBarButtonItem]
+            toolbarItems = [spacerBarButtonItem, goBackBarButtonItem, goForwardBarButtonItem, refreshBarButtonItem]
         }
     }
     
@@ -116,9 +120,16 @@ class ViewController: UIViewController, WKNavigationDelegate {
                     return
                 }
             }
+            
         }
-        
+        showAlert(title: "Domain not allowed", message: "\(url?.host ?? "This") domain is not allowed")
         decisionHandler(.cancel)
+    }
+    
+    func showAlert(title: String, message: String) {
+        let ac = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        ac.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        present(ac, animated: true)
     }
 
 }
